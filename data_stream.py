@@ -71,6 +71,14 @@ def run_spark_job(spark):
             psf.window(distinct_table.call_datetime, "10 minutes", "5 minutes"),
             distinct_table.original_crime_type_name
             ).count()
+    
+    # TODO query for number of calls occured in certain time frame by 
+    # transforming the timestamp first by using udf to convert timestamp to right format on call_date_time column
+    converted_df = distinct_table.withColumn("call_date_time", udf_convert_time(distinct_table.call_datetime))
+
+    # TODO apply aggregations using windows function to see how many calls occurred per week 
+    calls_per_week = converted_df.groupBy(psf.window(converted_df.call_date_time, "7 days"))
+                    .agg(psf.count("crime_id").alias("calls_per_week")).select("calls_per_week").count()
 
     # TODO Q1. Submit a screen shot of a batch ingestion of the aggregation
     # TODO write output stream
